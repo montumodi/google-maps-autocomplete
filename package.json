@@ -1,0 +1,19 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@vis.gl/react-google-maps": "latest",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-widgets": "^5.8.4",
+    "styled-components": "^6.1.11",
+    "vite": "^5.0.4"
+  },
+  "scripts": {
+    "start": "vite",
+    "start-local": "vite --config ../vite.config.local.js",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9"
+  }
+}
