@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import { createRoot } from 'react-dom/client';
-import { APIProvider, ControlPosition, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { APIProvider, ControlPosition, Map, AdvancedMarker} from '@vis.gl/react-google-maps';
 
 import { CustomMapControl } from './map-control';
 import MapHandler from './map-handler';
@@ -30,25 +30,43 @@ const autocompleteModes: Array<AutocompleteMode> = [
 ];
 
 const App = () => {
+
   const [selectedAutocompleteMode, setSelectedAutocompleteMode] =
     useState<AutocompleteMode>(autocompleteModes[0]);
 
   const [selectedPlace, setSelectedPlace] =
     useState<google.maps.places.Place | null>(null);
 
-  const [markerPosition, setMarkerPosition] = useState<google.maps.LatLngLiteral | null>(null);
+  const [markerPosition, setMarkerPosition] = useState<google.maps.LatLng | null>(null);
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLng>();
 
-  // const handleMarkerDragEnd = async (event) => {
-  //   const newPosition = event.latLng.toJSON();
-  //   setMarkerPosition(newPosition);
-  
-  //   // Reverse geocode to get the address for the new position
-  //   const geocoder = new window.google.maps.Geocoder();
-  //   const results = await geocoder.geocode({ location: newPosition });
-  //   if (results.results.length > 0) {
-  //     setSelectedPlace(results.results[0]);
-  //   }
-  // }
+  useEffect(() => {
+    if (selectedPlace?.location) {
+      setMarkerPosition(selectedPlace.location);
+      // setMapCenter(selectedPlace.location);
+    }
+  }, [selectedPlace]);
+
+  const handleMarkerDragEnd = async (event) => {
+    setMarkerPosition(event.latLng);
+    // Reverse geocode to get the address for the new position
+    const geocoder = new window.google.maps.Geocoder();
+    console.log(event.latLng);
+    const results = await geocoder.geocode({ location: event.latLng });
+    if (results.results.length > 0) {
+
+      const { Place } = await google.maps.importLibrary(
+        "places"
+      ) as google.maps.PlacesLibrary;
+
+      const place = new Place({"id": results.results[0].place_id});
+      await place?.fetchFields({
+        fields: ["displayName", "types", "addressComponents", "formattedAddress", "location", "plusCode", "viewport", "websiteURI", "internationalPhoneNumber", "editorialSummary"],
+      });
+
+      setSelectedPlace(place);
+    }
+  }
 
   return (
     <APIProvider apiKey={API_KEY}>
@@ -64,19 +82,16 @@ const App = () => {
         <div className="map">
           <Map
             defaultZoom={3}
-            defaultCenter={{ lat: 22.54992, lng: 0 }}
-            gestureHandling={'greedy'}
+            center={mapCenter}
+            defaultCenter={{ lat: 51.52059819765926, lng: -0.3138373625656573 }}
             disableDefaultUI={true}
             mapId={'1ba3b93c3e1caec2'}
           />
-          {selectedPlace && (
+          {markerPosition && (
             <AdvancedMarker
               draggable={true}
-              // onDragEnd={handleMarkerDragEnd}
-              position={{
-                lat: selectedPlace.location?.lat() ?? 0,
-                lng: selectedPlace.location?.lng() ?? 0,
-              }}
+              onDragEnd={handleMarkerDragEnd}
+              position={markerPosition}
             />
           )}
         </div>

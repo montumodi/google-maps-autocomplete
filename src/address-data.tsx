@@ -15,6 +15,8 @@ function get_address_components(place: google.maps.places.Place) {
         resultDict["formatted_address"] = place.formattedAddress;
     }
 
+    resultDict["lat, long"] = `${place.location?.lat()}, ${place.location?.lng()}`;
+
     if (place.internationalPhoneNumber) {
         resultDict["international_phone_number"] = place.internationalPhoneNumber;
     }
